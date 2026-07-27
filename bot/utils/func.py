@@ -21,12 +21,24 @@ PUBLIC_LINK_PATTERN = re.compile(r'(https?://)?(t\.me|telegram\.me)/([^/]+)(/(\d
 PRIVATE_LINK_PATTERN = re.compile(r'(https?://)?(t\.me|telegram\.me)/c/(\d+)(/(\d+))?')
 VIDEO_EXTENSIONS = {"mp4", "mkv", "avi", "mov", "wmv", "flv", "webm", "mpeg", "mpg", "3gp"}
 
-mongo_client = AsyncIOMotorClient(MONGO_URI, tlsCAFile=certifi.where())
+mongo_client = AsyncIOMotorClient(
+    MONGO_URI,
+    tlsCAFile=certifi.where(),
+    serverSelectionTimeoutMS=10000,
+    connectTimeoutMS=5000,
+    socketTimeoutMS=5000,
+)
 db = mongo_client[DB_NAME]
 users_collection = db["users"]
 premium_users_collection = db["premium_users"]
 statistics_collection = db["statistics"]
 codedb = db["redeem_code"]
+
+def readable_db_error(error):
+    text = str(error)
+    if "SSL handshake failed" in text or "TLSV1_ALERT_INTERNAL_ERROR" in text:
+        return "MongoDB Atlas is rejecting the connection before login. Open Atlas Network Access, allow your VPS IP, and confirm the cluster is running."
+    return text
 
 # ------- < start > Session Encoder don't change -------
 
@@ -139,7 +151,7 @@ async def save_user_session(user_id, session_string):
         logger.info(f"Saved session for user {user_id}")
         return True
     except Exception as e:
-        logger.error(f"Error saving session for user {user_id}: {e}")
+        logger.error(f"Error saving session for user {user_id}: {readable_db_error(e)}")
         return False
 
 
@@ -169,7 +181,7 @@ async def save_user_bot(user_id, bot_token):
         logger.info(f"Saved bot token for user {user_id}")
         return True
     except Exception as e:
-        logger.error(f"Error saving bot token for user {user_id}: {e}")
+        logger.error(f"Error saving bot token for user {user_id}: {readable_db_error(e)}")
         return False
 
 
@@ -315,8 +327,9 @@ async def add_premium_user(user_id, duration_value, duration_unit):
         
         return True, expiry_date
     except Exception as e:
-        logger.error(f"Error adding premium user {user_id}: {e}")
-        return False, str(e)
+        message = readable_db_error(e)
+        logger.error(f"Error adding premium user {user_id}: {message}")
+        return False, message
 
 
 async def is_premium_user(user_id):
