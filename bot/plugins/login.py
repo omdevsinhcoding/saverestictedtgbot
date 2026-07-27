@@ -61,8 +61,11 @@ async def set_bot_token(C, m):
         return
 
     bot_token = args[1].strip()
-    await save_user_bot(user_id, bot_token)
-    await m.reply_text("✅ Bot token saved successfully.", quote=True)
+    saved = await save_user_bot(user_id, bot_token)
+    if saved:
+        await m.reply_text("✅ Bot token saved successfully.", quote=True)
+    else:
+        await m.reply_text("❌ Bot token could not be saved because MongoDB is not connected. Fix Atlas Network Access first.", quote=True)
     
     
 @bot.on_message(filters.command("rembot"))
@@ -147,14 +150,19 @@ Please try again with /login.""")
                 await temp_client.sign_in(phone, phone_code_hash, code)
                 session_string = await temp_client.export_session_string()
                 encrypted_session = ecs(session_string)
-                await save_user_session(user_id, encrypted_session)
+                saved = await save_user_session(user_id, encrypted_session)
                 await temp_client.disconnect()
                 temp_status_msg = login_cache[user_id]['status_msg']
                 login_cache.pop(user_id, None)
                 login_cache[user_id] = {'status_msg': temp_status_msg}
-                await edit_message_safely(status_msg,
-                    """✅ Logged in successfully!!"""
-                    )
+                if saved:
+                    await edit_message_safely(status_msg,
+                        """✅ Logged in successfully!!"""
+                        )
+                else:
+                    await edit_message_safely(status_msg,
+                        """❌ Login verified, but session was not saved because MongoDB is not connected. Fix Atlas Network Access first."""
+                        )
                 set_user_step(user_id, None)
             except SessionPasswordNeeded:
                 set_user_step(user_id, STEP_PASSWORD)
@@ -176,14 +184,19 @@ Please enter your password:"""
                 await temp_client.check_password(text)
                 session_string = await temp_client.export_session_string()
                 encrypted_session = ecs(session_string)
-                await save_user_session(user_id, encrypted_session)
+                saved = await save_user_session(user_id, encrypted_session)
                 await temp_client.disconnect()
                 temp_status_msg = login_cache[user_id]['status_msg']
                 login_cache.pop(user_id, None)
                 login_cache[user_id] = {'status_msg': temp_status_msg}
-                await edit_message_safely(status_msg,
-                    """✅ Logged in successfully!!"""
-                    )
+                if saved:
+                    await edit_message_safely(status_msg,
+                        """✅ Logged in successfully!!"""
+                        )
+                else:
+                    await edit_message_safely(status_msg,
+                        """❌ Login verified, but session was not saved because MongoDB is not connected. Fix Atlas Network Access first."""
+                        )
                 set_user_step(user_id, None)
             except BadRequest as e:
                 await edit_message_safely(status_msg,
