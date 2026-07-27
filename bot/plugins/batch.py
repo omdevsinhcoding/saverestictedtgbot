@@ -167,38 +167,39 @@ async def get_msg(c, u, i, d, lt):
         return None
 
 
-async def get_ubot(uid):
+async def get_ubot(uid, fallback_client=None):
     bt = await get_user_data_key(uid, "bot_token", None)
-    if not bt: return None
     if uid in UB: return UB.get(uid)
+    if not bt:
+        return fallback_client or X
     try:
         bot = Client(f"user_{uid}", bot_token=bt, api_id=API_ID, api_hash=API_HASH)
-        await bot.start()
+        await asyncio.wait_for(bot.start(), timeout=20)
         UB[uid] = bot
         return bot
     except Exception as e:
         print(f"Error starting bot for user {uid}: {e}")
-        return None
+        return fallback_client or X
 
-async def get_uclient(uid):
+async def get_uclient(uid, fallback_client=None):
     ud = await get_user_data(uid)
     ubot = UB.get(uid)
     cl = UC.get(uid)
     if cl: return cl
-    if not ud: return ubot if ubot else None
+    if not ud: return ubot or fallback_client or Y
     xxx = ud.get('session_string')
     if xxx:
         try:
             ss = dcs(xxx)
             gg = Client(f'{uid}_client', api_id=API_ID, api_hash=API_HASH, device_model="v3saver", session_string=ss)
-            await gg.start()
-            await upd_dlg(gg)
+            await asyncio.wait_for(gg.start(), timeout=20)
+            await asyncio.wait_for(upd_dlg(gg), timeout=20)
             UC[uid] = gg
             return gg
         except Exception as e:
             print(f'User client error: {e}')
-            return ubot if ubot else Y
-    return Y
+            return ubot or fallback_client or Y
+    return fallback_client or Y
 
 async def prog(c, t, C, h, m, st):
     global P
@@ -406,9 +407,14 @@ async def process_cmd(c, m):
         await pro.edit('You have an active task. Use /stop to cancel it.')
         return
     
-    ubot = await get_ubot(uid)
+    try:
+        ubot = await asyncio.wait_for(get_ubot(uid, c), timeout=25)
+    except asyncio.TimeoutError:
+        await pro.edit('Telegram client check timed out. Please try /batch again.')
+        return
+
     if not ubot:
-        await pro.edit('Add your bot with /setbot first')
+        await pro.edit('Bot client is not ready. Please try again.')
         return
     
     Z[uid] = {'step': 'start' if cmd == 'batch' else 'start_single'}
@@ -432,9 +438,9 @@ async def text_handler(c, m):
     uid = m.from_user.id
     if uid not in Z: return
     s = Z[uid].get('step')
-    x = await get_ubot(uid)
+    x = await get_ubot(uid, c)
     if not x:
-        await message.reply("Add your bot /setbot `token`")
+        await m.reply_text("Bot client is not ready. Please try again.")
         return
 
     if s == 'start':
@@ -459,13 +465,13 @@ async def text_handler(c, m):
         i, s, lt = Z[uid]['cid'], Z[uid]['sid'], Z[uid]['lt']
         pt = await m.reply_text('Processing...')
         
-        ubot = UB.get(uid)
+        ubot = UB.get(uid) or x
         if not ubot:
             await pt.edit('Add bot with /setbot first')
             Z.pop(uid, None)
             return
         
-        uc = await get_uclient(uid)
+        uc = await get_uclient(uid, ubot)
         if not uc:
             await pt.edit('Cannot proceed without user client.')
             Z.pop(uid, None)
@@ -505,8 +511,8 @@ async def text_handler(c, m):
         success = 0
 
         pt = await m.reply_text('Processing batch...')
-        uc = await get_uclient(uid)
-        ubot = UB.get(uid)
+        ubot = UB.get(uid) or x
+        uc = await get_uclient(uid, ubot)
         
         if not uc or not ubot:
             await pt.edit('Missing client setup')
