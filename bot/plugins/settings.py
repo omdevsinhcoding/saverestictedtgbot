@@ -9,7 +9,7 @@ import asyncio
 import string
 import random
 from shared_client import client as gf
-from config import OWNER_ID
+from config import OWNER_ID, ADMIN_CONTACT
 from utils.func import get_user_data_key, save_user_data, users_collection
 
 VIDEO_EXTENSIONS = {
@@ -49,7 +49,7 @@ async def send_settings_message(chat_id, user_id):
             Button.inline('❌ Remove Thumbnail', b'remthumb')
         ],
         [
-            Button.url('🆘 Report Errors', 'https://t.me/team_spy_pro')
+            Button.url('🆘 Report Errors', ADMIN_CONTACT)
         ]
     ]
     await gf.send_message(chat_id, MESS, buttons=buttons)
