@@ -5,7 +5,7 @@
 import os, re, time, asyncio, json, asyncio 
 from pyrogram import Client, filters
 from pyrogram.types import Message
-from pyrogram.errors import UserNotParticipant
+from pyrogram.errors import UserNotParticipant, FloodWait
 from config import API_ID, API_HASH, LOG_GROUP, STRING, FORCE_SUB, FREEMIUM_LIMIT, PREMIUM_LIMIT
 from utils.func import get_user_data, screenshot, thumbnail, get_video_metadata
 from utils.func import get_user_data_key, process_text_with_rules, is_premium_user, E
@@ -85,29 +85,43 @@ async def upd_dlg(c):
         print(f'Failed to update dialogs: {e}')
         return False
 
+async def safe_edit(message, text):
+    try:
+        await message.edit(text)
+    except FloodWait as e:
+        await asyncio.sleep(e.value)
+        try:
+            await message.edit(text)
+        except Exception:
+            pass
+    except Exception:
+        pass
+
 # fixed the old group of 2021-2022 extraction 🌝 (buy krne ka fayda nhi ab old group) ✅ 
 async def get_msg(c, u, i, d, lt):
     try:
         if lt == 'public':
             try:
+                emp.setdefault(i, True)
                 if str(i).lower().endswith('bot'):
                     emp[i] = False
-                    xm = await u.get_messages(i, d)
+                    xm = await asyncio.wait_for(u.get_messages(i, d), timeout=25)
                     emp[i] = getattr(xm, "empty", False)
                     if not emp[i]:
                         emp[i] = True
                         print(f"Bot chat found successfully...")
                         return xm
                     
-                if emp[i]:
-                    xm = await c.get_messages(i, d)
+                if emp.get(i, True):
+                    xm = await asyncio.wait_for(c.get_messages(i, d), timeout=25)
                     print(f"fetched by {c.me.username}")
                     emp[i] = getattr(xm, "empty", False)
                     if emp[i]:
                         print(f"Not fetched by {c.me.username}")
                         try: await u.join_chat(i)
                         except: pass
-                        xm = await u.get_messages((await u.get_chat(f"@{i}")).id, d)
+                        chat = await asyncio.wait_for(u.get_chat(f"@{i}"), timeout=25)
+                        xm = await asyncio.wait_for(u.get_messages(chat.id, d), timeout=25)
                     
                     return xm                   
             except Exception as e:
@@ -116,8 +130,6 @@ async def get_msg(c, u, i, d, lt):
         else:
             if u:
                 try:
-                    async for _ in u.get_dialogs(limit=50): pass
-                    
                     # Try with -100 prefix first
                     if str(i).startswith('-100'):
                         chat_id_100 = i
@@ -133,7 +145,7 @@ async def get_msg(c, u, i, d, lt):
                     
                     # Try -100 format first
                     try:
-                        result = await u.get_messages(chat_id_100, d)
+                        result = await asyncio.wait_for(u.get_messages(chat_id_100, d), timeout=30)
                         if result and not getattr(result, "empty", False):
                             return result
                     except Exception:
@@ -141,7 +153,7 @@ async def get_msg(c, u, i, d, lt):
                     
                     # Try - format second
                     try:
-                        result = await u.get_messages(chat_id_dash, d)
+                        result = await asyncio.wait_for(u.get_messages(chat_id_dash, d), timeout=30)
                         if result and not getattr(result, "empty", False):
                             return result
                     except Exception:
@@ -149,8 +161,8 @@ async def get_msg(c, u, i, d, lt):
                     
                     # Final fallback - refresh dialogs and try original
                     try:
-                        async for _ in u.get_dialogs(limit=200): pass
-                        result = await u.get_messages(i, d)
+                        await asyncio.wait_for(upd_dlg(u), timeout=30)
+                        result = await asyncio.wait_for(u.get_messages(i, d), timeout=30)
                         if result and not getattr(result, "empty", False):
                             return result
                     except Exception:
@@ -483,12 +495,14 @@ async def text_handler(c, m):
             return
 
         try:
-            msg = await get_msg(ubot, uc, i, s, lt)
+            msg = await asyncio.wait_for(get_msg(ubot, uc, i, s, lt), timeout=45)
             if msg:
-                res = await process_msg(ubot, uc, msg, str(m.chat.id), lt, uid, i)
+                res = await asyncio.wait_for(process_msg(ubot, uc, msg, str(m.chat.id), lt, uid, i), timeout=900)
                 await pt.edit(f'1/1: {res}')
             else:
                 await pt.edit('Message not found')
+        except asyncio.TimeoutError:
+            await pt.edit('Timed out while processing this message. Try a smaller/public post first.')
         except Exception as e:
             await pt.edit(f'Error: {str(e)[:50]}')
         finally:
@@ -531,6 +545,7 @@ async def text_handler(c, m):
             "cancel_requested": False,
             "progress_message_id": pt.id
             })
+        await safe_edit(pt, f'Batch started: 0/{n}\nSuccess: 0\nCurrent: waiting...')
         
         try:
             for j in range(n):
@@ -542,20 +557,23 @@ async def text_handler(c, m):
                 await update_batch_progress(uid, j, success)
                 
                 mid = int(s) + j
+                await safe_edit(pt, f'Processing {j+1}/{n}\nMessage ID: {mid}\nSuccess: {success}')
                 
                 try:
-                    msg = await get_msg(ubot, uc, i, mid, lt)
+                    msg = await asyncio.wait_for(get_msg(ubot, uc, i, mid, lt), timeout=45)
                     if msg:
-                        res = await process_msg(ubot, uc, msg, str(m.chat.id), lt, uid, i)
+                        res = await asyncio.wait_for(process_msg(ubot, uc, msg, str(m.chat.id), lt, uid, i), timeout=900)
                         if 'Done' in res or 'Copied' in res or 'Sent' in res:
                             success += 1
+                        await safe_edit(pt, f'{j+1}/{n}: {res}\nSuccess: {success}')
                     else:
-                        pass
+                        await safe_edit(pt, f'{j+1}/{n}: Message not found or no access\nSuccess: {success}')
+                except asyncio.TimeoutError:
+                    await safe_edit(pt, f'{j+1}/{n}: Timed out, skipped\nSuccess: {success}')
                 except Exception as e:
-                    try: await pt.edit(f'{j+1}/{n}: Error - {str(e)[:30]}')
-                    except: pass
+                    await safe_edit(pt, f'{j+1}/{n}: Error - {str(e)[:30]}\nSuccess: {success}')
                 
-                await asyncio.sleep(10)
+                await asyncio.sleep(1)
             
             if j+1 == n:
                 await m.reply_text(f'Batch Completed ✅ Success: {success}/{n}')
