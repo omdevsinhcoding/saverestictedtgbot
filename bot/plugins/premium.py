@@ -39,6 +39,17 @@ Example: /add 123456 1 week"""
         target_user_id = int(parts[1])
         duration_value = int(parts[2])
         duration_unit = parts[3].lower()
+        # Normalize common aliases (singular/plural) to canonical units
+        unit_aliases = {
+            'minute': 'min', 'minutes': 'min', 'mins': 'min', 'm': 'min',
+            'hour': 'hours', 'hr': 'hours', 'hrs': 'hours', 'h': 'hours',
+            'day': 'days', 'd': 'days',
+            'week': 'weeks', 'w': 'weeks',
+            'months': 'month', 'mo': 'month',
+            'years': 'year', 'yr': 'year', 'yrs': 'year', 'y': 'year',
+            'decade': 'decades',
+        }
+        duration_unit = unit_aliases.get(duration_unit, duration_unit)
         valid_units = ['min', 'hours', 'days', 'weeks', 'month', 'year',
             'decades']
         if duration_unit not in valid_units:
