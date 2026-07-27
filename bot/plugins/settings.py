@@ -9,7 +9,7 @@ import asyncio
 import string
 import random
 from shared_client import client as gf
-from config import OWNER_ID
+from config import OWNER_ID, ADMIN_CONTACT
 from utils.func import get_user_data_key, save_user_data, users_collection
 
 VIDEO_EXTENSIONS = {
