@@ -93,11 +93,11 @@ START_TEXT = (
 
 HOW_TO_TEXT = (
     "🆘 **How To Use**\n\n"
-    "> **1.** Send /login and complete phone + OTP (+ 2FA if set).\n"
-    "> **2.** For a single post ➜ send /single then the post link, or just paste the link.\n"
-    "> **3.** For bulk ➜ send /batch, then give the first post link and how many posts.\n"
-    "> **4.** Personalize caption, thumbnail, rename tag etc. from /settings.\n"
-    "> **5.** Use /cancel or /stop to abort an ongoing process.\n\n"
+    "**1.** Send `/login` and complete **phone + OTP** (+ 2FA if set).\n"
+    "**2.** For a **single post** ➜ send `/single` then the post link, or just paste the link.\n"
+    "**3.** For **bulk** ➜ send `/batch`, then give the first post link and how many posts.\n"
+    "**4.** Personalize **caption, thumbnail, rename tag** etc. from `/settings`.\n"
+    "**5.** Use `/cancel` or `/stop` to abort an ongoing process.\n\n"
     "⚠️ __Your account must be a member of the private channel you want to save from.__"
 )
 
