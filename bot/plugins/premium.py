@@ -87,7 +87,7 @@ START_TEXT = (
     "> ‣ Save Restricted Post (Text, Media, Files)\n"
     "> ‣ Support Private & Public Channels\n"
     "> ‣ Batch/Bulk Mode Supported\n\n"
-    "> ⚠️ **Note:** __You must /login to your account to use the "
+    "> ⚠️ **Note:** __You must__ `/login` __to your account to use the "
     "downloading features.__"
 )
 
@@ -120,7 +120,7 @@ def start_keyboard():
         ],
         [IK("⚙️ Settings", callback_data="start_settings")],
         [
-            IK("🚩 Official Channel", url=JL),
+            IK("📢 Official Channel", url=JL),
             IK("👨‍💻 Developer", url=AC),
         ],
     ])
