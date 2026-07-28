@@ -82,11 +82,11 @@ Subscription valid until: {formatted_expiry} (IST)"""
         
 START_TEXT = (
     "> 👋 **Welcome {mention}!**\n\n"
-    "I am the Advanced Save Restricted Content Bot.\n\n"
+    "**I am the Advanced Save Restricted Content Bot.**\n\n"
     "> 🚀 **What I Can Do:**\n"
-    "> ‣ Save Restricted Post (Text, Media, Files)\n"
-    "> ‣ Support Private & Public Channels\n"
-    "> ‣ Batch/Bulk Mode Supported\n\n"
+    "> **‣ Save Restricted Post (Text, Media, Files)**\n"
+    "> **‣ Support Private & Public Channels**\n"
+    "> **‣ Batch/Bulk Mode Supported**\n\n"
     "> ⚠️ **Note:** __You must__ `/login` __to your account to use the "
     "downloading features.__"
 )
