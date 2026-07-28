@@ -92,13 +92,33 @@ START_TEXT = (
 )
 
 HOW_TO_TEXT = (
-    "🆘 **How To Use**\n\n"
-    "**1.** Send `/login` and complete **phone + OTP** (+ 2FA if set).\n"
-    "**2.** For a **single post** ➜ send `/single` then the post link, or just paste the link.\n"
-    "**3.** For **bulk** ➜ send `/batch`, then give the first post link and how many posts.\n"
-    "**4.** Personalize **caption, thumbnail, rename tag** etc. from `/settings`.\n"
-    "**5.** Use `/cancel` or `/stop` to abort an ongoing process.\n\n"
-    "⚠️ __Your account must be a member of the private channel you want to save from.__"
+    "🛠 **How To Use Me**\n\n"
+    "👤 **User Commands**\n"
+    "> /start - Start the bot\n"
+    "> /help - How to use guide\n"
+    "> /id - View user ID, chat ID\n"
+    "> /commands - View all commands\n"
+    "> /login - Login your Telegram account\n"
+    "> /logout - Logout current session\n"
+    "> /cancel - Cancel ongoing process\n"
+    "> /settings - Bot settings (Caption, Rename, Upload, Thumbnail)\n"
+    "> /referral - Referral program\n"
+    "> /myplan - Check your plan\n"
+    "> /premium - Buy premium\n\n"
+    "📌 **How To Save Content**\n"
+    "> **Single Post:** Send any Telegram post link\n"
+    "> **Batch/Bulk:** Send link with range like\n"
+    "> `https://t.me/channel/1-100`\n"
+    "> **Upload Chat:** Set via /settings ➜ Set Upload\n"
+    "> **Custom Caption:** /settings ➜ Set Caption\n"
+    "> **Rename Rules:** /settings ➜ Set Rename (delete/replace words)\n\n"
+    "🎬 **Bot Content Extraction** ( 💎 **Premium**)\n"
+    "> Extract restricted content from other bots!\n"
+    "> Just send the bot's deep link like:\n"
+    "> `https://t.me/SomeBot?start=PARAM`\n"
+    ">\n"
+    "> Bot will extract all messages & media the target bot sends.\n"
+    "> **Limit:** 5000 msgs/link | 2 min cooldown"
 )
 
 ABOUT_TEXT = (
@@ -130,6 +150,13 @@ def back_keyboard():
     return IKM([[IK("⬅️ Back", callback_data="start_back")]])
 
 
+def how_keyboard():
+    return IKM([[
+        IK("❌ Close", callback_data="start_close"),
+        IK("⬅️ Back", callback_data="start_back"),
+    ]])
+
+
 @app.on_message(filters.command(spy.b64decode(a5.encode()).decode()))
 async def start_handler(client, message):
     subscription_status = await subscribe(client, message)
@@ -145,15 +172,22 @@ async def start_handler(client, message):
     )
 
 
-@app.on_callback_query(filters.regex(r"^start_(how|about|settings|back)$"))
+@app.on_callback_query(filters.regex(r"^start_(how|about|settings|back|close)$"))
 async def start_menu_cb(client, callback_query):
     action = callback_query.data.split("_", 1)[1]
 
     if action == "how":
         await callback_query.message.edit_text(
-            HOW_TO_TEXT, reply_markup=back_keyboard(),
+            HOW_TO_TEXT, reply_markup=how_keyboard(),
             disable_web_page_preview=True,
         )
+    elif action == "close":
+        try:
+            await callback_query.message.delete()
+        except Exception:
+            pass
+        await callback_query.answer()
+        return
     elif action == "about":
         await callback_query.message.edit_text(
             ABOUT_TEXT.format(admin=AC, join=JL),
