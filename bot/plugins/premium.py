@@ -160,7 +160,12 @@ async def start_menu_cb(client, callback_query):
             disable_web_page_preview=True,
         )
     elif action == "settings":
-        await callback_query.answer("Send /settings to personalize things.", show_alert=True)
+        try:
+            from plugins.settings import send_settings_message
+            await send_settings_message(callback_query.message.chat.id, callback_query.from_user.id)
+            await callback_query.answer()
+        except Exception:
+            await callback_query.answer("Send /settings to personalize things.", show_alert=True)
         return
     else:
         mention = callback_query.from_user.mention if callback_query.from_user else "there"
