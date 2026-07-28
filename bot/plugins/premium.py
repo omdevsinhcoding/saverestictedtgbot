@@ -9,6 +9,7 @@ from config import OWNER_ID
 from utils.func import add_premium_user, is_private_chat
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton as IK, InlineKeyboardMarkup as IKM
+from pyrogram.enums import ParseMode
 from config import OWNER_ID, JOIN_LINK as JL , ADMIN_CONTACT as AC
 import base64 as spy
 import os
@@ -94,33 +95,32 @@ START_TEXT = (
 )
 
 HOW_TO_TEXT = (
-    "🛠 𝐇𝐨𝐰 𝐓𝐨 𝐔𝐬𝐞 𝐌𝐞\n\n"
-    "👤 𝐔𝐬𝐞𝐫 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬\n"
-    "> **/start** - Start the bot\n"
-    "> **/help** - How to use guide\n"
-    "> **/id** - View user ID, chat ID\n"
-    "> **/commands** - View all commands\n"
-    "> **/login** - Login your Telegram account\n"
-    "> **/logout** - Logout current session\n"
-    "> **/cancel** - Cancel ongoing process\n"
-    "> **/settings** - Bot settings (Caption, Rename, Upload, Thumbnail)\n"
-    "> **/referral** - Referral program\n"
-    "> **/myplan** - Check your plan\n"
-    "> **/premium** - Buy premium\n\n"
-    "📌 𝐇𝐨𝐰 𝐓𝐨 𝐒𝐚𝐯𝐞 𝐂𝐨𝐧𝐭𝐞𝐧𝐭\n"
-    "> **Single Post:** Send any Telegram post link\n"
-    "> **Batch/Bulk:** Send link with range like\n"
-    "> `https://t.me/channel/1-100`\n"
-    "> **Upload Chat:** Set via **/settings** ➜ Set Upload\n"
-    "> **Custom Caption:** **/settings** ➜ Set Caption\n"
-    "> **Rename Rules:** **/settings** ➜ Set Rename (delete/replace words)\n\n"
-    "🤖 𝐁𝐨𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭 𝐄𝐱𝐭𝐫𝐚𝐜𝐭𝐢𝐨𝐧 (💎 Premium)\n"
-    "> Extract restricted content from other bots!\n"
-    "> Just send the bot's deep link like:\n"
-    "> `https://t.me/SomeBot?start=PARAM`\n"
-    ">\n"
-    "> Bot will extract all messages & media the target bot sends.\n"
-    "> **Limit:** 5000 msgs/link | 2 min cooldown"
+    "🛠 𝐇𝐨𝐰 𝐓𝐨 𝐔𝐬𝐞 𝐌𝐞\n\n\n"
+    "👤 𝐔𝐬𝐞𝐫 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬\n\n\n\n"
+    "/start - Start the bot\n"
+    "/help - How to use guide\n"
+    "/id - View user ID, chat ID\n"
+    "/commands - View all commands\n"
+    "/login - Login your Telegram account\n"
+    "/logout - Logout current session\n"
+    "/cancel - Cancel ongoing process\n"
+    "/settings - Bot settings (Caption, Rename, Upload, Thumbnail)\n"
+    "/referral - Referral program\n"
+    "/myplan - Check your plan\n"
+    "/premium - Buy premium\n\n\n\n"
+    "📌 𝐇𝐨𝐰 𝐓𝐨 𝐒𝐚𝐯𝐞 𝐂𝐨𝐧𝐭𝐞𝐧𝐭\n\n\n\n"
+    "Single Post: Send any Telegram post link\n"
+    "Batch/Bulk: Send link with range like\n"
+    "https://t.me/channel/1-100\n"
+    "Upload Chat: Set via /settings → Set Upload\n"
+    "Custom Caption: /settings → Set Caption\n"
+    "Rename Rules: /settings → Set Rename (delete/replace words)\n\n\n\n"
+    "🤖 𝐁𝐨𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭 𝐄𝐱𝐭𝐫𝐚𝐜𝐭𝐢𝐨𝐧 (💎 Premium)\n\n\n\n"
+    "Extract restricted content from other bots!\n"
+    "Just send the bot's deep link like:\n"
+    "https://t.me/SomeBot?start=PARAM\n\n"
+    "Bot will extract all messages & media the target bot sends.\n"
+    "Limit: 5000 msgs/link | 2 min cooldown"
 )
 
 ABOUT_TEXT = (
@@ -172,7 +172,6 @@ async def _edit_how_with_styled_close(callback_query):
         "chat_id": chat_id,
         "message_id": message_id,
         "text": HOW_TO_TEXT,
-        "parse_mode": "HTML",
         "disable_web_page_preview": True,
         "reply_markup": {
             "inline_keyboard": [[
@@ -195,6 +194,7 @@ async def _edit_how_with_styled_close(callback_query):
     await callback_query.message.edit_text(
         HOW_TO_TEXT, reply_markup=how_keyboard(),
         disable_web_page_preview=True,
+        parse_mode=ParseMode.DISABLED,
     )
 
 
