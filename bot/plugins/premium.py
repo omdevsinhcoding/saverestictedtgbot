@@ -81,7 +81,7 @@ Subscription valid until: {formatted_expiry} (IST)"""
         
         
 START_TEXT = (
-    "👋 **Welcome {mention}!**\n\n"
+    "> 👋 **Welcome {mention}!**\n\n"
     "I am the Advanced Save Restricted Content Bot.\n\n"
     "> 🚀 **What I Can Do:**\n"
     "> ‣ Save Restricted Post (Text, Media, Files)\n"
@@ -141,6 +141,7 @@ async def start_handler(client, message):
         START_TEXT.format(mention=mention),
         reply_markup=start_keyboard(),
         disable_web_page_preview=True,
+        reply_to_message_id=message.id,
     )
 
 
