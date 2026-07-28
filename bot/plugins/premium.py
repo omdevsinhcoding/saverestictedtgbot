@@ -95,8 +95,8 @@ START_TEXT = (
 )
 
 HOW_TO_TEXT = (
-    "🛠 𝐇𝐨𝐰 𝐓𝐨 𝐔𝐬𝐞 𝐌𝐞\n\n"
-    "👤 𝐔𝐬𝐞𝐫 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬\n"
+    "🛠 𝐇𝐨𝐰 𝐓𝐨 𝐔𝐬𝐞 𝐌𝐞\n"
+    "👤 𝐔𝐬𝐞𝐫 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬"
     "<blockquote>"
     "/start - Start the bot\n"
     "/help - How to use guide\n"
@@ -109,8 +109,8 @@ HOW_TO_TEXT = (
     "/referral - Referral program\n"
     "/myplan - Check your plan\n"
     "/premium - Buy premium"
-    "</blockquote>\n"
-    "📌 𝐇𝐨𝐰 𝐓𝐨 𝐒𝐚𝐯𝐞 𝐂𝐨𝐧𝐭𝐞𝐧𝐭\n"
+    "</blockquote>"
+    "📌 𝐇𝐨𝐰 𝐓𝐨 𝐒𝐚𝐯𝐞 𝐂𝐨𝐧𝐭𝐞𝐧𝐭"
     "<blockquote>"
     "<b>Single Post:</b> Send any Telegram post link\n"
     "<b>Batch/Bulk:</b> Send link with range like\n"
@@ -118,8 +118,8 @@ HOW_TO_TEXT = (
     "<b>Upload Chat:</b> Set via /settings → Set Upload\n"
     "<b>Custom Caption:</b> /settings → Set Caption\n"
     "<b>Rename Rules:</b> /settings → Set Rename (delete/replace words)"
-    "</blockquote>\n"
-    "🤖 𝐁𝐨𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭 𝐄𝐱𝐭𝐫𝐚𝐜𝐭𝐢𝐨𝐧 (💎 Premium)\n"
+    "</blockquote>"
+    "🤖 𝐁𝐨𝐭 𝐂𝐨𝐧𝐭𝐞𝐧𝐭 𝐄𝐱𝐭𝐫𝐚𝐜𝐭𝐢𝐨𝐧 (💎 Premium)"
     "<blockquote>"
     "<b>Extract restricted content from other bots!</b>\n"
     "Just send the bot's deep link like:\n"
