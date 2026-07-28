@@ -80,8 +80,55 @@ Subscription valid until: {formatted_expiry} (IST)"""
         await event.respond(f'Error: {str(e)}')
         
         
-attr1 = spy.b64encode("photo".encode()).decode()
-attr2 = spy.b64encode("file_id".encode()).decode()
+START_TEXT = (
+    "👋 **Welcome {mention}!**\n\n"
+    "I am the Advanced Save Restricted Content Bot.\n\n"
+    "> 🚀 **What I Can Do:**\n"
+    "> ‣ Save Restricted Post (Text, Media, Files)\n"
+    "> ‣ Support Private & Public Channels\n"
+    "> ‣ Batch/Bulk Mode Supported\n\n"
+    "> ⚠️ **Note:** __You must /login to your account to use the "
+    "downloading features.__"
+)
+
+HOW_TO_TEXT = (
+    "🆘 **How To Use**\n\n"
+    "> **1.** Send /login and complete phone + OTP (+ 2FA if set).\n"
+    "> **2.** For a single post ➜ send /single then the post link, or just paste the link.\n"
+    "> **3.** For bulk ➜ send /batch, then give the first post link and how many posts.\n"
+    "> **4.** Personalize caption, thumbnail, rename tag etc. from /settings.\n"
+    "> **5.** Use /cancel or /stop to abort an ongoing process.\n\n"
+    "⚠️ __Your account must be a member of the private channel you want to save from.__"
+)
+
+ABOUT_TEXT = (
+    "ℹ️ **About Bot**\n\n"
+    "> 🤖 **Name:** Advanced Save Restricted Content Bot\n"
+    "> ⚙️ **Version:** v3\n"
+    "> 🐍 **Language:** Python (Pyrogram + Telethon)\n"
+    "> 💾 **Database:** MongoDB\n"
+    "> 👨‍💻 **Developer:** [Contact]({admin})\n"
+    "> 🚩 **Channel:** [Join Here]({join})"
+)
+
+
+def start_keyboard():
+    return IKM([
+        [
+            IK("🆘 How To Use", callback_data="start_how"),
+            IK("ℹ️ About Bot", callback_data="start_about"),
+        ],
+        [IK("⚙️ Settings", callback_data="start_settings")],
+        [
+            IK("🚩 Official Channel", url=JL),
+            IK("👨‍💻 Developer", url=AC),
+        ],
+    ])
+
+
+def back_keyboard():
+    return IKM([[IK("⬅️ Back", callback_data="start_back")]])
+
 
 @app.on_message(filters.command(spy.b64decode(a5.encode()).decode()))
 async def start_handler(client, message):
@@ -89,28 +136,38 @@ async def start_handler(client, message):
     if subscription_status == 1:
         return
 
-    b1 = spy.b64decode(a1).decode()
-    b2 = int(spy.b64decode(a2).decode())
-    b3 = spy.b64decode(a3).decode()
-    b4 = spy.b64decode(a4).decode()
-    b6 = spy.b64decode(a7).decode()
-    b7 = spy.b64decode(a8).decode()
-    b8 = spy.b64decode(a9).decode()
-    b9 = spy.b64decode(a10).decode()
-    b10 = spy.b64decode(a11).decode()
-
-    tm = await getattr(app, b3)(b1, b2)
-
-    pb = getattr(tm, spy.b64decode(attr1.encode()).decode())
-    fd = getattr(pb, spy.b64decode(attr2.encode()).decode())
-
-    kb = IKM([
-        [IK(b7, url=JL)],
-        [IK(b8, url=AC)]
-    ])
-
-    await getattr(message, b4)(
-        fd,
-        caption=b6,
-        reply_markup=kb
+    mention = message.from_user.mention if message.from_user else "there"
+    await message.reply_text(
+        START_TEXT.format(mention=mention),
+        reply_markup=start_keyboard(),
+        disable_web_page_preview=True,
     )
+
+
+@app.on_callback_query(filters.regex(r"^start_(how|about|settings|back)$"))
+async def start_menu_cb(client, callback_query):
+    action = callback_query.data.split("_", 1)[1]
+
+    if action == "how":
+        await callback_query.message.edit_text(
+            HOW_TO_TEXT, reply_markup=back_keyboard(),
+            disable_web_page_preview=True,
+        )
+    elif action == "about":
+        await callback_query.message.edit_text(
+            ABOUT_TEXT.format(admin=AC, join=JL),
+            reply_markup=back_keyboard(),
+            disable_web_page_preview=True,
+        )
+    elif action == "settings":
+        await callback_query.answer("Send /settings to personalize things.", show_alert=True)
+        return
+    else:
+        mention = callback_query.from_user.mention if callback_query.from_user else "there"
+        await callback_query.message.edit_text(
+            START_TEXT.format(mention=mention),
+            reply_markup=start_keyboard(),
+            disable_web_page_preview=True,
+        )
+
+    await callback_query.answer()
