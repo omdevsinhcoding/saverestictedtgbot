@@ -5,6 +5,7 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from pyrogram.errors import BadRequest, SessionPasswordNeeded, PhoneCodeInvalid, PhoneCodeExpired, MessageNotModified
+from pyrogram.enums import ParseMode
 import logging
 import os
 import asyncio
@@ -138,7 +139,7 @@ async def login_command(client, message):
         await message.delete()
     except Exception:
         pass
-    status_msg = await message.reply(_phone_prompt())
+    status_msg = await message.reply(_phone_prompt(), parse_mode=ParseMode.HTML, disable_web_page_preview=True)
     login_cache[user_id] = {'status_msg': status_msg}
     _arm_timeout(user_id, PHONE_TIMEOUT)
     
@@ -360,7 +361,7 @@ async def cancel_command(client, message):
         if status_msg:
             await edit_message_safely(status_msg, CANCEL_TEXT)
         else:
-            temp_msg = await message.reply(CANCEL_TEXT)
+            temp_msg = await message.reply(CANCEL_TEXT, parse_mode=ParseMode.HTML)
             await temp_msg.delete(5)
     else:
         temp_msg = await message.reply('No active login process to cancel.')
