@@ -11,6 +11,8 @@ from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton as IK, InlineKeyboardMarkup as IKM
 from config import OWNER_ID, JOIN_LINK as JL , ADMIN_CONTACT as AC
 import base64 as spy
+import os
+import aiohttp
 from utils.func import a1, a2, a3, a4, a5, a7, a8, a9, a10, a11
 from plugins.start import subscribe
 
@@ -157,6 +159,45 @@ def how_keyboard():
     ]])
 
 
+async def _edit_how_with_styled_close(callback_query):
+    """
+    Edit the message with a styled (red/danger) Close button using Bot API 10.2
+    `style` field directly, since Pyrogram doesn't expose it yet.
+    Falls back to normal Pyrogram edit if the direct call fails.
+    """
+    bot_token = os.getenv("BOT_TOKEN", "")
+    chat_id = callback_query.message.chat.id
+    message_id = callback_query.message.id
+    payload = {
+        "chat_id": chat_id,
+        "message_id": message_id,
+        "text": HOW_TO_TEXT,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True,
+        "reply_markup": {
+            "inline_keyboard": [[
+                {"text": "❌ Close", "callback_data": "start_close", "style": "danger"},
+                {"text": "⬅️ Back", "callback_data": "start_back"},
+            ]],
+        },
+    }
+    if bot_token:
+        try:
+            url = f"https://api.telegram.org/bot{bot_token}/editMessageText"
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=payload, timeout=15) as resp:
+                    data = await resp.json()
+                    if data.get("ok"):
+                        return
+        except Exception:
+            pass
+    # Fallback: standard Pyrogram edit (no red style)
+    await callback_query.message.edit_text(
+        HOW_TO_TEXT, reply_markup=how_keyboard(),
+        disable_web_page_preview=True,
+    )
+
+
 @app.on_message(filters.command(spy.b64decode(a5.encode()).decode()))
 async def start_handler(client, message):
     subscription_status = await subscribe(client, message)
@@ -177,10 +218,7 @@ async def start_menu_cb(client, callback_query):
     action = callback_query.data.split("_", 1)[1]
 
     if action == "how":
-        await callback_query.message.edit_text(
-            HOW_TO_TEXT, reply_markup=how_keyboard(),
-            disable_web_page_preview=True,
-        )
+        await _edit_how_with_styled_close(callback_query)
     elif action == "close":
         try:
             await callback_query.message.delete()
