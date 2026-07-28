@@ -130,43 +130,46 @@ async def get_msg(c, u, i, d, lt):
         else:
             if u:
                 try:
-                    # Try with -100 prefix first
-                    if str(i).startswith('-100'):
-                        chat_id_100 = i
-                        # For - prefix, remove -100 and add just -
-                        base_id = str(i)[4:]  # Remove -100
-                        chat_id_dash = f"-{base_id}"
-                    elif i.isdigit():
-                        chat_id_100 = f"-100{i}"
-                        chat_id_dash = f"-{i}"
+                    raw_chat_id = str(i).strip()
+                    if raw_chat_id.startswith('-100'):
+                        base_id = raw_chat_id[4:]
+                        chat_id_100 = raw_chat_id
+                    elif raw_chat_id.lstrip('-').isdigit():
+                        base_id = raw_chat_id.lstrip('-')
+                        chat_id_100 = f"-100{base_id}"
                     else:
-                        chat_id_100 = i
-                        chat_id_dash = i
-                    
-                    # Try -100 format first
-                    try:
-                        result = await asyncio.wait_for(u.get_messages(chat_id_100, d), timeout=30)
-                        if result and not getattr(result, "empty", False):
-                            return result
-                    except Exception:
-                        pass
-                    
-                    # Try - format second
-                    try:
-                        result = await asyncio.wait_for(u.get_messages(chat_id_dash, d), timeout=30)
-                        if result and not getattr(result, "empty", False):
-                            return result
-                    except Exception:
-                        pass
-                    
-                    # Final fallback - refresh dialogs and try original
+                        base_id = raw_chat_id
+                        chat_id_100 = raw_chat_id
+
+                    candidates = []
+                    for candidate in (chat_id_100, f"-{base_id}", raw_chat_id):
+                        if candidate not in candidates:
+                            candidates.append(candidate)
+                        if str(candidate).lstrip('-').isdigit():
+                            candidate_int = int(candidate)
+                            if candidate_int not in candidates:
+                                candidates.append(candidate_int)
+
+                    for candidate in candidates:
+                        try:
+                            result = await asyncio.wait_for(u.get_messages(candidate, d), timeout=30)
+                            if result and not getattr(result, "empty", False):
+                                return result
+                        except Exception as e:
+                            print(f'Private fetch failed for {candidate}: {e}')
+
                     try:
                         await asyncio.wait_for(upd_dlg(u), timeout=30)
-                        result = await asyncio.wait_for(u.get_messages(i, d), timeout=30)
-                        if result and not getattr(result, "empty", False):
-                            return result
                     except Exception:
                         pass
+
+                    for candidate in candidates:
+                        try:
+                            result = await asyncio.wait_for(u.get_messages(candidate, d), timeout=30)
+                            if result and not getattr(result, "empty", False):
+                                return result
+                        except Exception as e:
+                            print(f'Private fetch after dialog refresh failed for {candidate}: {e}')
                     
                     return None
                             
