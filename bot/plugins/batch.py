@@ -324,7 +324,7 @@ async def process_msg(c, u, m, d, lt, uid, i):
                 await c.edit_message_text(d, p.id, 'File is larger than 2GB. Using alternative method...')
                 await upd_dlg(Y)
                 mtd = await get_video_metadata(f)
-                dur, h, w = mtd['duration'], mtd['width'], mtd['height']
+                dur, w, h = mtd['duration'], mtd['width'], mtd['height']
                 th = await screenshot(f, dur, d)
                 
                 send_funcs = {'video': Y.send_video, 'video_note': Y.send_video_note, 
@@ -360,10 +360,10 @@ async def process_msg(c, u, m, d, lt, uid, i):
                 file_ext = os.path.splitext(f)[1].lower()
                 if m.video or (m.document and file_ext in video_extensions):
                     mtd = await get_video_metadata(f)
-                    dur, h, w = mtd['duration'], mtd['width'], mtd['height']
+                    dur, w, h = mtd['duration'], mtd['width'], mtd['height']
                     th = await screenshot(f, dur, d)
                     await c.send_video(tcid, video=f, caption=ft if m.caption else None, 
-                                    thumb=th, width=w, height=h, duration=dur, 
+                                    thumb=th, width=w, height=h, duration=dur, supports_streaming=True,
                                     progress=prog, progress_args=(c, d, p.id, st), 
                                     reply_to_message_id=rtmid)
                 elif m.video_note:
